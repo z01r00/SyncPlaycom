@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ video.title }} - SyncPlay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+</head>
+<body>
+    <header class="dark-header">
+        <div class="logo">SyncPlay</div>
+        <nav>
+            <a href="/">首页</a>
+            {% if 'user_id' in session %}
+                <a href="/upload">上传视频</a>
+            {% endif %}
+        </nav>
+        <nav>
+            <a href="https://api.amemv.com/magic/eco/runtime/release/6461f944e84c15036369f2a8?appType=douyinpc&magic_page_no=1&call_link=vega%3A%2F%2Fcom.ies.videocut%2Fmain%2Fdraft%2Fnew_draft%3F%3Ffrom%3Ddouyin_post_panel">剪映专业版</a>
+        </nav>
+        <div class="user-nav">
+            {% if 'user_id' in session %}
+                <a href="/user/{{ session['username'] }}">{{ session['username'] }}</a>
+                <a href="{{ url_for('logout') }}">退出</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">登录</a>
+                <a href="{{ url_for('register') }}">注册</a>
+            {% endif %}
+        </div>
+        <form class="search-box" action="/search" method="get">
+            <input type="text" name="q" placeholder="搜索视频...">
+            <button type="submit">搜索</button>
+        </form>
+    </header>
+
+    <main class="video-container">
+        <div class="video-player">
+            <video id="mainVideo" controls autoplay loop controlsList="nodownload" oncontextmenu="return false;" muted>
+                <source src="{{ url_for('static', filename='videos/' + video.filename) }}" type="video/mp4">
+                您的浏览器不支持视频播放
+            </video>
+            <div id="danmuContainer"></div>
+        </div>
+        
+        <div class="video-details">
+            <h1>{{ video.title }}</h1>
+            <div class="stats">
+                <span>播放: {{ video.views }}</span>
+                <span>上传时间: {{ video.upload_date }}</span>
+            </div>
+            
+            <div class="author-info">
+                <div class="author-avatar">
+                    <img src="{{ url_for('static', filename='avatars/' + author_avatar) }}" 
+                         alt="{{ video.author }}的头像" width="40" height="40">
+                </div>
+                <span>作者: <a href="/user/{{ video.author }}">{{ video.author }}</a></span>
+                {% if 'user_id' in session and session['username'] != video.author %}
+                <button class="follow-btn {% if video.author in current_user_following %}following{% endif %}" 
+                        onclick="followUser('{{ video.author }}')">
+                    {% if video.author in current_user_following %}已关注{% else %}关注{% endif %}
+                </button>
+                {% endif %}
+                <span class="followers">粉丝: {{ author_followers }}</span>
+            </div>
+            
+            <div class="actions">
+                <button class="like-btn {% if liked %}liked{% endif %}" id="likeBtn" onclick="likeVideo()">
+                    <span id="likeIcon">{% if liked %}❤️{% else %}🤍{% endif %}</span>
+                    <span id="likeCount">{{ video.likes }}</span>
+                </button>
+                <button class="fav-btn {% if favorited %}favorited{% endif %}" id="favBtn" onclick="favoriteVideo()">
+                    <span id="favIcon">{% if favorited %}★{% else %}☆{% endif %}</span>
+                    <span id="favCount">{{ video.favorites }}</span>
+                </button>
+                <button class="share-btn" onclick="openShareModal()">分享</button>
+            </div>
+        </div>
+        
+        <!-- 分享模态框 -->
+        <div class="share-modal" id="shareModal">
+            <div class="share-content">
+                <span class="close" onclick="closeShareModal()">&times;</span>
+                <h3>分享视频</h3>
+                <div class="share-link">
+                    <input type="text" id="shareUrl" readonly value="{{ request.url }}">
+                    <button onclick="copyShareLink()">复制链接</button>
+                </div>
+                <div class="social-share">
+                    <button class="social-btn wechat" onclick="shareToWechat()">微信</button>
+                    <button class="social-btn qq" onclick="shareToQQ()">QQ</button>
+                    <button class="social-btn weibo" onclick="shareToWeibo()">微博</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="comments-section">
+            <h3>评论</h3>
+            
+            <div class="comment-form">
+                <textarea id="commentInput" placeholder="发表你的评论..."></textarea>
+                <button onclick="postComment()">发布</button>
+            </div>
+            
+            <div class="comments-list">
+                {% for comment in comments %}
+                <div class="comment">
+                    <div class="comment-header">
+                        <span class="comment-author">{{ comment.author }}</span>
+                        <span class="comment-time">{{ comment.time }}</span>
+                    </div>
+                    <div class="comment-content">{{ comment.text }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    <footer class="dark-footer">
+        <p>SyncPlay &copy; 2025</p>
+    </footer>
+    
+    <script>
+    function followUser(username) {
+        fetch(`/follow/${username}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const btn = document.querySelector('.follow-btn');
+                const followersSpan = document.querySelector('.followers');
+                
+                // 同时更新文本和类名
+                if (data.action === 'follow') {
+                    btn.textContent = '已关注';
+                    btn.classList.add('following');
+                } else {
+                    btn.textContent = '关注';
+                    btn.classList.remove('following');
+                }
+                
+                // 更新粉丝数显示
+                followersSpan.textContent = `粉丝: ${data.followers}`;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    
+    function likeVideo() {
+        fetch(`/video/${'{{ video.id }}'}/like`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const btn = document.getElementById('likeBtn');
+                const icon = document.getElementById('likeIcon');
+                const count = document.getElementById('likeCount');
+                
+                count.textContent = data.likes;
+                
+                if (data.action === 'like') {
+                    btn.classList.add('liked');
+                    icon.textContent = '❤️';
+                } else {
+                    btn.classList.remove('liked');
+                    icon.textContent = '🤍';
+                }
+            }
+        });
+    }
+    
+    function favoriteVideo() {
+        fetch(`/video/${'{{ video.id }}'}/favorite`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const btn = document.getElementById('favBtn');
+                const icon = document.getElementById('favIcon');
+                const count = document.getElementById('favCount');
+                
+                count.textContent = data.favorites;
+                
+                if (data.action === 'favorite') {
+                    btn.classList.add('favorited');
+                    icon.textContent = '★';
+                } else {
+                    btn.classList.remove('favorited');
+                    icon.textContent = '☆';
+                }
+            }
+        });
+    }
+    
+    function openShareModal() {
+        document.getElementById('shareModal').style.display = 'block';
+    }
+    
+    function closeShareModal() {
+        document.getElementById('shareModal').style.display = 'none';
+    }
+    
+    function copyShareLink() {
+        const shareUrl = document.getElementById('shareUrl');
+        shareUrl.select();
+        document.execCommand('copy');
+        alert('链接已复制到剪贴板');
+    }
+    
+    function shareToWechat() {
+        alert('微信分享功能');
+    }
+    
+    function shareToQQ() {
+        window.open(`http://connect.qq.com/widget/shareqq/index.html?url=${encodeURIComponent(window.location.href)}&title=${document.title}`);
+    }
+    
+    function shareToWeibo() {
+        window.open(`http://service.weibo.com/share/share.php?url=${encodeURIComponent(window.location.href)}&title=${document.title}`);
+    }
+    
+    // 弹幕系统
+    const danmuContainer = document.getElementById('danmuContainer');
+    const video = document.getElementById('mainVideo');
+    
+    function sendDanmu() {
+        const text = document.getElementById('danmuInput').value.trim();
+        if (!text) return;
+        
+        // 发送弹幕到服务器
+        fetch(`/video/${'{{ video.id }}'}/danmu`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ text: text })
+        });
+        
+        // 本地显示
+        displayDanmu(text);
+        document.getElementById('danmuInput').value = '';
+    }
+    
+    function displayDanmu(text) {
+        const danmu = document.createElement('div');
+        danmu.className = 'danmu';
+        danmu.textContent = text;
+        
+        // 随机位置和颜色
+        const top = Math.random() * 80 + 5; // 5% - 85%
+        danmu.style.top = `${top}%`;
+        danmu.style.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
+        
+        danmuContainer.appendChild(danmu);
+        
+        // 动画结束后移除
+        setTimeout(() => {
+            danmu.remove();
+        }, 5000);
+    }
+    
+    // 接收服务器弹幕
+    function connectDanmu() {
+        const eventSource = new EventSource(`/video/${'{{ video.id }}'}/danmu_stream`);
+        
+        eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            displayDanmu(data.text);
+        };
+    }
+    
+    function postComment() {
+        const text = document.getElementById('commentInput').value.trim();
+        if (!text) return;
+        
+        const btn = document.querySelector('.comment-form button');
+        btn.disabled = true;
+        btn.textContent = '发布中...';
+        
+        fetch(`/video/${'{{ video.id }}'}/comment`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ text: text })
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = '发布';
+            
+            if (data.status === 'success') {
+                // 动态创建新评论元素
+                const comment = data.comment;
+                const commentsList = document.querySelector('.comments-list');
+                
+                const commentElement = document.createElement('div');
+                commentElement.className = 'comment';
+                commentElement.innerHTML = `
+                    <div class="comment-header">
+                        <span class="comment-author">${comment.author}</span>
+                        <span class="comment-time">${comment.time}</span>
+                    </div>
+                    <div class="comment-content">${comment.text}</div>
+                `;
+                
+                // 添加到评论列表顶部
+                commentsList.insertBefore(commentElement, commentsList.firstChild);
+                
+                // 清空输入框
+                document.getElementById('commentInput').value = '';
+            } else {
+                alert('评论失败: ' + (data.message || '未知错误'));
+            }
+        })
+        .catch(error => {
+            btn.disabled = false;
+            btn.textContent = '发布';
+            console.error('Error:', error);
+            alert('评论失败，请重试');
+        });
+    }
+    
+    // 启动弹幕系统
+    connectDanmu();
+    </script>
+</body>
+</html>

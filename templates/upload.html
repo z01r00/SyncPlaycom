@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上传视频 - SyncPlay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.1">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <script>
+        function uploadVideo() {
+            const form = document.getElementById('upload-form');
+            const formData = new FormData(form);
+            const progressBar = document.getElementById('upload-progress');
+            const statusMessage = document.getElementById('upload-status');
+            
+            // 显示进度条
+            progressBar.style.display = 'block';
+            statusMessage.textContent = '上传中...';
+            
+            // 创建AJAX请求
+            const xhr = new XMLHttpRequest();
+            
+            // 上传进度事件
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.value = percent;
+                }
+            });
+            
+            // 请求完成
+            xhr.addEventListener('load', function() {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.status === 'success') {
+                        statusMessage.textContent = '上传成功！即将跳转到视频页面...';
+                        progressBar.value = 100;
+                        
+                        // 3秒后跳转到视频页面
+                        setTimeout(() => {
+                            window.location.href = `/video/${response.video_id}`;
+                        }, 3000);
+                    } else {
+                        statusMessage.textContent = `上传失败: ${response.message}`;
+                        progressBar.style.display = 'none';
+                    }
+                } else {
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        statusMessage.textContent = `上传失败: ${errorResponse.message}`;
+                    } catch {
+                        statusMessage.textContent = '上传失败: 服务器错误';
+                    }
+                    progressBar.style.display = 'none';
+                }
+            });
+            
+            // 请求错误
+            xhr.addEventListener('error', function() {
+                statusMessage.textContent = '上传失败: 网络错误';
+                progressBar.style.display = 'none';
+            });
+            
+            // 发送请求
+            xhr.open('POST', '/upload_video', true);
+            xhr.send(formData);
+            
+            return false;
+        }
+    </script>
+</head>
+<body>
+    <header class="dark-header">
+        <div class="logo">SyncPlay</div>
+        <nav>
+            <a href="/">首页</a>
+            {% if 'user_id' in session %}
+                <a href="/upload">上传视频</a>
+            {% endif %}
+        </nav>
+        <nav>
+            <a href="https://api.amemv.com/magic/eco/runtime/release/6461f944e84c15036369f2a8?appType=douyinpc&magic_page_no=1&call_link=vega%3A%2F%2Fcom.ies.videocut%2Fmain%2Fdraft%2Fnew_draft%3F%3Ffrom%3Ddouyin_post_panel">剪映专业版</a>
+        </nav>
+        <div class="user-nav">
+            {% if 'user_id' in session %}
+                <span class="username">{{ session['username'] }}</span>
+                <a href="{{ url_for('logout') }}">退出</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">登录</a>
+                <a href="{{ url_for('register') }}">注册</a>
+            {% endif %}
+        </div>
+        <form class="search-box" action="/search" method="get">
+            <input type="text" name="q" placeholder="搜索视频...">
+            <button type="submit">搜索</button>
+        </form>
+    </header>
+
+    <main class="upload-container">
+        <h1>上传新视频</h1>
+        
+        <form id="upload-form" onsubmit="return uploadVideo()" class="upload-form">
+            <div class="form-group">
+                <label for="title">视频标题</label>
+                <input type="text" id="title" name="title" placeholder="输入视频标题" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="video_file">选择视频文件</label>
+                <input type="file" id="video_file" name="video_file" accept="video/*" required>
+                <p class="hint">支持格式: MP4, WebM, MKV (最大500MB)</p>
+            </div>
+            
+            <div class="form-group">
+                <progress id="upload-progress" value="0" max="100" style="display: none; width: 100%; height: 20px;"></progress>
+                <div id="upload-status" style="margin-top: 10px;"></div>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="upload-btn">上传视频</button>
+            </div>
+        </form>
+    </main>
+
+    <footer class="dark-footer">
+        <p>SyncPlay &copy; 2025</p>
+    </footer>
+</body>
+</html>

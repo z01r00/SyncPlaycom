@@ -1,0 +1,26 @@
+[
+  {
+    "id": "55b05322-5f59-46ef-9a2f-8dcc659da68d",
+    "username": "H12",
+    "password": "scrypt:32768:8:1$rOgisy9btbJSmn36$8268c1a69e4e3ffa47075eb10e8c9660f9703298b067e1562a292097d5caf4d8c54840d0734aacebc778871ac4bf1c90e3870b14c22a2f90951d6aa3d0e44136",
+    "register_date": "2025-07-18",
+    "avatar": "default.jpg",
+    "groups": [],
+    "followers": 1,
+    "following": [
+      "2B"
+    ]
+  },
+  {
+    "id": "d4812aa8-3c35-4ddc-8636-6ab654052886",
+    "username": "2B",
+    "password": "scrypt:32768:8:1$NwDYJwKWDaVKK5Dh$1daedc4e9e42dfe44b686c51d3985591b6e6972509067026a6ed947126016a3cd2d610b634dd2045476ca99af12e397fd7c762fd26c7801839be511fdcbc30d3",
+    "register_date": "2025-07-18",
+    "followers": 1,
+    "avatar": "default1.jpg",
+    "following": [
+      "H12"
+    ],
+    "favorites": []
+  }
+]

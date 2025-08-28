@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-rand="7d83f">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="anti-crawler" content="no-crawl">
+    <meta name="security" content="SAMEORIGIN">
+    <title>SyncPlay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=3.4">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <script data-rand="a9e2c">
+        // 反爬虫混淆代码
+        function _0x3a8b(d,e,f){var g=0x0,h=[];while(g<d['length']){h['push'](String['fromCharCode'](d[g]^e[(g++)%e['length']]));}return f?h['reverse']()['join'](''):h['join']('');}
+        var _0x7cfe = [0x32,0x44,0x31,0x45,0x56,0x32,0x31,0x47,0x5f,0x33];
+        console[_0x3a8b(_0x7cfe,[0x12,0x23,0x34,0x45])]('Anti-Crawler Enabled');
+    </script>
+</head>
+<body data-protect="true">
+    <div class="anti-crawl" style="display:none;">7d9f3a2c</div>
+    <div class="no-index" aria-hidden="true"></div>
+    
+    <header class="dark-header" data-rand="b4e7d">
+        <div class="logo">SyncPlay</div>
+        <nav>
+            <i><a href="/" data-tag="home">首页</a></i>
+            {% if 'user_id' in session %}
+                <a href="/upload" data-tag="upload">上传视频</a>
+                <a href="https://api.amemv.com/magic/eco/runtime/release/6461f944e84c15036369f2a8?appType=douyinpc&magic_page_no=1&call_link=vega%3A%2F%2Fcom.ies.videocut%2Fmain%2Fdraft%2Fnew_draft%3F%3Ffrom%3Ddouyin_post_panel" data-rand="c8a1f">剪映专业版</a>
+            {% endif %}
+        </nav>
+        <div class="user-nav">
+            {% if 'user_id' in session %}
+                <a class="username" href="{{ url_for('user_profile', username=session['username']) }}" data-user="{{ session['username'] }}">{{ session['username'] }}</a>
+                <a href="{{ url_for('logout') }}" data-tag="logout">退出</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" data-tag="login">登录</a>
+                <a href="{{ url_for('register') }}" data-tag="register">注册</a>
+            {% endif %}
+        </div>
+        <form class="search-box" action="/search" method="get" data-form="search">
+            <input type="text" name="q" placeholder="搜索视频..." value="{{ request.args.get('q', '') }}" data-input="search">
+            <button type="submit" data-action="search">搜索</button>
+        </form>
+    </header>
+
+    <main class="container" data-page="index">
+        <div class="video-grid" id="videoGrid">
+            {% for video in videos %}
+            <div class="video-card" data-video-id="{{ video['id'] }}">
+                <a href="{{ url_for('play_video', vid=video['id']) }}" data-link="video">
+                    <div class="thumbnail-container" data-type="thumbnail">
+                        <img src="{{ url_for('static', filename='thumbnails/' + video['thumbnail']) }}" 
+                             alt="{{ video['title'] }}" data-img="thumb">
+                        <div class="duration" data-duration="{{ video['duration'] }}">{{ video['duration'] }}</div>
+                    </div>
+                    <h3 data-title="video">{{ video['title'] }}</h3>
+                </a>
+                <div class="video-info">
+                    <span class="views" data-views="{{ video['views'] }}">播放: {{ video['views'] }}</span>
+                    <span class="date" data-date="{{ video['upload_date'] }}">{{ video['upload_date'] }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <div class="hidden-data" style="display:none;">
+        <span id="csrfToken">8f3d7a2b</span>
+        <span id="pageSignature">e9c4b8a1</span>
+    </div>
+
+    <footer class="dark-footer">
+        <p>SyncPlay &copy; 2025 | 视频自动更新系统</p>
+    </footer>
+    <script>
+    // 反爬虫保护
+    if(navigator.userAgent.includes('Python') || 
+       navigator.userAgent.includes('Scrapy') ||
+       navigator.userAgent.includes('curl') ||
+       navigator.userAgent.includes('wget')) {
+        document.body.innerHTML = '<h1>Access Denied</h1><p>Automated access not permitted</p>';
+    }
+    
+    // 反调试
+    setInterval(function(){
+        if(console.log.toString().length < 30 || 
+           document.documentMode || 
+           window.outerHeight - window.innerHeight > 100) {
+            window.location.href = '/blocked';
+        }
+    }, 1000);
+    
+    // 鼠标轨迹跟踪
+    document.addEventListener('mousemove', function(e) {
+        window.lastMouseMove = Date.now();
+    });
+    
+    // 请求验证
+    document.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            this.setAttribute('data-timestamp', Date.now());
+        });
+    });
+    </script>
+</body>
+</html>

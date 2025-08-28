@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索 - SyncPlay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+</head>
+<body>
+    <header class="dark-header">
+        <div class="logo">SyncPlay</div>
+        <nav>
+            <a href="/">首页</a>
+            {% if 'user_id' in session %}
+                <a href="/upload">上传视频</a>
+            {% endif %}
+        </nav>
+        <nav>
+            <a href="https://api.amemv.com/magic/eco/runtime/release/6461f944e84c15036369f2a8?appType=douyinpc&magic_page_no=1&call_link=vega%3A%2F%2Fcom.ies.videocut%2Fmain%2Fdraft%2Fnew_draft%3F%3Ffrom%3Ddouyin_post_panel">剪映专业版</a>
+        </nav>
+        <div class="user-nav">
+            {% if 'user_id' in session %}
+                <span class="username">{{ session['username'] }}</span>
+                <a href="{{ url_for('logout') }}">退出</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">登录</a>
+                <a href="{{ url_for('register') }}">注册</a>
+            {% endif %}
+        </div>
+        <form class="search-box" action="/search" method="get">
+            <input type="text" name="q" placeholder="搜索视频..." value="{{ query }}">
+            <button type="submit">搜索</button>
+        </form>
+    </header>
+
+    <main class="container">
+        <h2 class="search-results-header">
+            {% if query %}
+                "{{ query }}" 的搜索结果
+            {% else %}
+                所有视频
+            {% endif %}
+            <span class="results-count">({{ videos|length }}个)</span>
+        </h2>
+        
+        {% if videos %}
+        <div class="video-grid">
+            {% for video in videos %}
+            <div class="video-card">
+                <a href="{{ url_for('play_video', vid=video['id']) }}">
+                    <div class="thumbnail-container">
+                        <img src="{{ url_for('static', filename='thumbnails/' + video['thumbnail']) }}" 
+                             alt="{{ video['title'] }}">
+                        <div class="duration">{{ video['duration'] }}</div>
+                    </div>
+                    <h3>{{ video['title'] }}</h3>
+                </a>
+                <div class="video-info">
+                    <span class="views">播放: {{ video['views'] }}</span>
+                    <span class="date">{{ video['upload_date'] }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-results">
+            <p>没有找到匹配的视频</p>
+            <a href="/" class="back-link">返回首页</a>
+        </div>
+        {% endif %}
+    </main>
+
+    <footer class="dark-footer">
+        <p>SyncPlay &copy; 2025 | 视频自动更新系统</p>
+    </footer>
+</body>
+</html>
