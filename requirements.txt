@@ -168,8 +168,6 @@ python-vlc==3.0.21203
 pytweening==1.2.0
 pytz==2025.2
 pywifi==1.1.12
-pywin32==306
-pywin32-ctypes==0.2.3
 PyYAML==6.0.2
 pyzbar==0.1.9
 pyzipper==0.3.6
@@ -239,4 +237,5 @@ yutto==2.0.3
 zeroconf==0.147.0
 zope.event==5.0
 zope.interface==7.2
+
 
