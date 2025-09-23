@@ -39,7 +39,7 @@ jobs:
     # 步骤5: 构建项目（根据你的项目调整）
     - name: Build project
       run: |
-        mkdir build
+        echo "build" > build/misk.js.py.code.misd.wi.we.py.cpp.txt
       
     # 步骤6: 创建.nojekyll文件
     - name: Add .nojekyll file
@@ -51,3 +51,4 @@ jobs:
       with:
         github_token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
         publish_dir: ./build
+
