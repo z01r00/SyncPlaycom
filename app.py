@@ -33,7 +33,8 @@ app.config['SERVER_NAME'] = "www.liepin.ficlf.com:5062"
 
 @app.route('/')
 def index():
-    return render_template('index.html', title='Home')
+    videos = scan_videos()
+    return render_template('index.html', videos=videos, domain=app.config['SERVER_NAME'])
 
 @app.route('/about')
 def about():
@@ -117,11 +118,6 @@ def login_required(f):
             return redirect(url_for('login', next=request.url))
         return f(*args, **kwargs)
     return decorated_function
-
-@app.route('/')
-def index():
-    videos = scan_videos()
-    return render_template('index.html', videos=videos, domain=app.config['SERVER_NAME'])
 
 # 添加搜索路由
 @app.route('/search')
@@ -588,4 +584,5 @@ def user_profile(username):
                           current_user_following=current_user_following)
 
 if __name__ == '__main__':
+
     app.run(debug=True)
