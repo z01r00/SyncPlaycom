@@ -22,18 +22,17 @@ jobs:
         pip freeze > requirements.txt
         pip install -r requirements.txt
 
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build
+
     - name: Add open mkdir build
       run: mkdir -p build
       
     - name: Add .nojekyll file
       run: touch build/.nojekyll
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-
-        publish_dir: ./build
 
 
 
