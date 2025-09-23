@@ -7,41 +7,45 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
 
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Checkout
+    # 步骤1: 检出代码（只需要一次）
+    - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        token: ${{ secrets.PAT }}
+        token: ${{ secrets.PAT }}  # 使用 PAT
+        fetch-depth: 0
 
+    # 步骤2: 设置 Python 环境
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.12.8'
+        python-version: '3.12'
 
+    # 步骤3: 安装依赖
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip freeze > requirements.txt
         pip install -r requirements.txt
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build
-
-    - name: Add open mkdir build
+        
+    # 步骤4: 创建构建目录（在构建之前）
+    - name: Create build directory
       run: mkdir -p build
-      
+        
+    # 步骤5: 创建 .nojekyll 文件
     - name: Add .nojekyll file
       run: touch build/.nojekyll
 
-
-
-
-
-
-
+    # 步骤6: 部署到 GitHub Pages
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.PAT }}  # 使用 PAT 而不是 GITHUB_TOKEN
+        publish_dir: ./build
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
